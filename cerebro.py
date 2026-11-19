@@ -22,6 +22,10 @@ class CerebroReglas:
         porcentaje = re.search(r"(\d+(?:[.,]\d+)?)\s*%\s*de\s*(\d+(?:[.,]\d+)?)", baja)
         if porcentaje:
             return '{"accion":"usar","herramienta":"calculadora","args":{"expresion":"' + str(porcentaje.group(1).replace(",", ".")) + '/100*' + str(porcentaje.group(2).replace(",", ".")) + '"}}'
+        if re.search(r"subred|hosts utilizables|cidr", baja):
+            coincidencia = re.search(r"\b\d{1,3}(?:\.\d{1,3}){3}/\d{1,2}\b", ultimo)
+            cidr = coincidencia.group(0) if coincidencia else "192.168.1.0/24"
+            return json.dumps({"accion":"usar","herramienta":"subred","args":{"cidr":cidr}}, ensure_ascii=False)
         if re.search(r"(calcul|cuánto|cuanto|operacion|operación|[+*/%-])", baja):
             expresion = re.sub(r"[^0-9+\-*/%(). ]", "", baja)
             expresion = expresion.replace("  ", " ").strip()
@@ -33,10 +37,6 @@ class CerebroReglas:
             if coincidencia:
                 lugar = coincidencia.group(1).strip(" ?¿")
             return json.dumps({"accion":"usar","herramienta":"clima","args":{"lugar":lugar}}, ensure_ascii=False)
-        if re.search(r"subred|hosts utilizables|cidr", baja):
-            coincidencia = re.search(r"\b\d{1,3}(?:\.\d{1,3}){3}/\d{1,2}\b", ultimo)
-            cidr = coincidencia.group(0) if coincidencia else "192.168.1.0/24"
-            return json.dumps({"accion":"usar","herramienta":"subred","args":{"cidr":cidr}}, ensure_ascii=False)
         if re.search(r"binari|base (2|8|10|16)|hexadecimal|convertir", baja):
             numero = re.search(r"\b(?:255|[0-9A-Fa-f]+)\b", ultimo)
             origen = 16 if "hexadecimal" in baja or "base 16" in baja else 10
